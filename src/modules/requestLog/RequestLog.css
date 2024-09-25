@@ -1,0 +1,47 @@
+.request-log-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+}
+
+.file-drop-area {
+    border: 2px dashed #ccc;
+    border-radius: 5px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.file-drop-area:hover {
+    background-color: #f0f0f0;
+}
+
+.file-content-area,
+.analysis-result-area {
+    width: 100%;
+}
+
+.file-content-area textarea,
+.analysis-result-area textarea {
+    width: 100%;
+    height: 200px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    resize: vertical;
+    font-size: 12px;
+    line-height: 1.4;
+    font-family: monospace;
+}
+
+.analysis-result-area h3 {
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.analysis-result-area textarea {
+    height: 200px;
+    /* 可以根据需要调整高度 */
+}
