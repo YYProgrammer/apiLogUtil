@@ -1,5 +1,6 @@
 import React, { useRef } from 'react';
 import './RequestLog.css';
+import { gptChat } from './RequestLogUtil';
 
 interface RequestLogProps {
     state: {
@@ -41,22 +42,17 @@ const RequestLog: React.FC<RequestLogProps> = ({ state, setState }) => {
         reader.readAsText(file);
     };
 
-    const analyzeContent = (content: string) => {
+    const analyzeContent = async (content: string) => {
         const lines = content.split('\n');
         const sequenceCount: { [key: string]: number } = {};
-        const nonOkSequences: string[] = [];
         const allSequences: Set<string> = new Set();
 
         lines.forEach(line => {
             const match = line.match(/#(\d+)\s+(GET|POST)\s+(\S+)/);
             if (match) {
-                const [, sequence, , status] = match;
+                const [, sequence] = match;
                 allSequences.add(sequence);
                 sequenceCount[sequence] = (sequenceCount[sequence] || 0) + 1;
-
-                if (status !== '200' && status !== '-') {
-                    nonOkSequences.push(sequence);
-                }
             }
         });
 
@@ -66,22 +62,26 @@ const RequestLog: React.FC<RequestLogProps> = ({ state, setState }) => {
 
         let result = '';
 
-        // 分析只出现一次的序号
+        // 先输出未返回的API请求结果
         if (uniqueSequences.length > 0) {
             result += "以下 API 请求尚未返回:\n" + uniqueSequences.map(seq => `- #${seq}`).join('\n') + '\n\n';
         } else {
             result += "所有 API 都已经返回\n\n";
         }
 
-        // 分析非 200 状态码的 API
-        if (nonOkSequences.length > 0) {
-            result += "以下 API 返回状态码不是 200:\n" + nonOkSequences.map(seq => `- #${seq}`).join('\n');
-        } else if (allSequences.size === Object.keys(sequenceCount).filter(seq => sequenceCount[seq] > 1).length) {
-            result += "所有 API 返回 200";
-        } else {
-            result += "部分 API 尚未返回,无法确定所有 API 是否返回 200";
-        }
+        // 立即更新状态，显示初步分析结果
+        setState(prevState => ({
+            ...prevState,
+            analysisResult: result
+        }));
 
+        // 调用 API 获取更多分析结果
+        // const q = await testApi1();
+        const gptChatRes = await gptChat(content);
+        result += "\n" + gptChatRes.choices[0].message.content;
+
+        console.log("第二次更新状态");
+        // 更新状态，包含API返回的结果
         setState(prevState => ({
             ...prevState,
             analysisResult: result
